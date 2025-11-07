@@ -1,0 +1,207 @@
+* {
+    user-select: none;
+    user-drag: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
+}
+
+body {
+    background-color: transparent !important;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    font-size: 11pt;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+main {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    width: 250px;
+    display: flex;
+    flex-direction: row;
+    background-color: #000000AA;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+    z-index: 1000;
+}
+
+section {
+    width: 125px;
+}
+
+dl {
+    margin: 0;
+}
+
+dt {
+    font-weight: bold;
+    color: var(--primary-color, #00d4ff);
+    font-size: 0.8rem;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+dt::after {
+    content: ":";
+}
+
+dd {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+dd:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+/* Style untuk container speedometer utama */
+.speedometer-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    main {
+        width: 220px;
+        bottom: 10px;
+        right: 10px;
+        padding: 8px;
+    }
+    
+    section {
+        width: 110px;
+    }
+    
+    dt {
+        font-size: 0.75rem;
+    }
+    
+    dd {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    main {
+        width: 200px;
+        bottom: 5px;
+        right: 5px;
+        padding: 6px;
+    }
+    
+    section {
+        width: 100px;
+    }
+    
+    dt {
+        font-size: 0.7rem;
+    }
+    
+    dd {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tambahan untuk kompatibilitas dengan speedometer */
+:root {
+    --primary-color: #00d4ff;
+    --secondary-color: #ff4500;
+    --warning-color: #ffa500;
+    --success-color: #00ff88;
+    --fuel-color: #00c8ff;
+    --rpm-start: #00ff88;
+    --rpm-mid: #ffa500;
+    --rpm-end: #ff4500;
+    --bg-dark: #0a0a15;
+    --bg-darker: #050510;
+}
+
+/* Utility classes untuk text colors */
+.text-primary {
+    color: var(--primary-color);
+}
+
+.text-warning {
+    color: var(--warning-color);
+}
+
+.text-success {
+    color: var(--success-color);
+}
+
+.text-danger {
+    color: var(--secondary-color);
+}
+
+/* Animation untuk warning states */
+@keyframes blink-warning {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+.warning-blink {
+    animation: blink-warning 1s infinite;
+}
+
+/* Style untuk status values */
+.status-value {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.status-value.high {
+    color: var(--success-color);
+}
+
+.status-value.medium {
+    color: var(--warning-color);
+}
+
+.status-value.low {
+    color: var(--secondary-color);
+}
+
+/* Hide elements yang tidak diperlukan */
+.hidden {
+    display: none !important;
+}
+
+/* Position utilities */
+.top-left {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+}
+
+.top-right {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+}
+
+.bottom-left {
+    position: fixed;
+    bottom: 15px;
+    left: 15px;
+}
+
+.bottom-right {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+}

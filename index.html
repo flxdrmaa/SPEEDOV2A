@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA V Modern Speedometer Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #00d4ff;
+            --secondary-color: #ff4500;
+            --warning-color: #ffa500;
+            --success-color: #00ff88;
+            --fuel-color: #00c8ff;
+            --rpm-start: #00ff88;
+            --rpm-mid: #ffa500;
+            --rpm-end: #ff4500;
+            --bg-dark: #0a0a15;
+            --bg-darker: #050510;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 50%, #1a1a2e 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        /* Logo Roderick Mechanic */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .logo {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            text-shadow: 0 0 25px rgba(0, 212, 255, 0.8);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            bottom: -8px;
+            left: 0;
+            border-radius: 2px;
+        }
+        
+        .logo-subtitle {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        
+        .dashboard-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.7);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .dashboard-subtitle {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        
+        .speedometer-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .speedometer {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 70%),
+                radial-gradient(circle at 30% 30%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(15, 15, 30, 0.95) 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 0 0 2px rgba(0, 212, 255, 0.1),
+                0 0 0 4px rgba(0, 0, 0, 0.8),
+                0 0 60px rgba(0, 212, 255, 0.3),
+                inset 0 0 80px rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .speedometer::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(0, 212, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.03) 0%, transparent 50%);
+            border-radius: 50%;
+        }
+        
+        /* Background Image with Overlay */
+        .background-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            filter: blur(2px) grayscale(0.8) brightness(0.7);
+            z-index: 0;
+            border-radius: 50%;
+        }
+        
+        /* Speed Arc Background */
+        .speed-arc {
+            position: absolute;
+            width: 82%;
+            height: 82%;
+            border-radius: 50%;
+            border: 10px solid transparent;
+            border-top-color: rgba(0, 212, 255, 0.4);
+            border-right-color: rgba(0, 212, 255, 0.3);
+            border-left-color: rgba(0, 212, 255, 0.3);
+            transform: rotate(135deg);
+            filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.4));
+            z-index: 2;
+        }
+        
+        /* RPM Arc segments */
+        .rpm-indicators {
+            position: absolute;
+            width: 94%;
+            height: 94%;
+            border-radius: 50%;
+            z-index: 3;
+        }
+        
+        .rpm-bar {
+            position: absolute;
+            width: 3px;
+            height: 25px;
+            left: 50%;
+            top: 0;
+            transform-origin: 50% 250px;
+            background: var(--rpm-start);
+            border-radius: 2px;
+            opacity: 0.7;
+        }
+        
+        .rpm-bar.yellow {
+            background: var(--rpm-mid);
+        }
+        
+        .rpm-bar.red {
+            background: var(--rpm-end);
+        }
+        
+        /* Speed Needle */
+        .speed-needle {
+            position: absolute;
+            width: 4px;
+            height: 45%;
+            background: linear-gradient(to top, var(--primary-color), #ff0000);
+            left: 50%;
+            top: 50%;
+            transform-origin: 50% 100%;
+            transform: translate(-50%, -100%) rotate(-135deg);
+            border-radius: 4px 4px 0 0;
+            z-index: 8;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .speed-needle::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            top: 100%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+        }
+        
+        .speed-needle::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ff0000;
+            border-radius: 50%;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* Speed Display */
+        .speed-display {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        .speed-value {
+            font-size: 5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.8);
+            line-height: 1;
+            letter-spacing: -2px;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .speed-unit {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+        
+        /* Speed Markings */
+        .speed-markings {
+            position: absolute;
+            width: 68%;
+            height: 68%;
+            border-radius: 50%;
+            z-index: 4;
+        }
+        
+        .marking {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            left: 50%;
+            top: 0;
+            transform-origin: 50% 170px;
+        }
+        
+        .marking.major {
+            height: 16px;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.6);
+        }
+        
+        .marking-number {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            font-weight: 700;
+            transform: translateX(-50%);
+        }
+        
+        /* Top Indicators */
+        .top-indicators {
+            position: absolute;
+            top: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 50px;
+            z-index: 5;
+        }
+        
+        .fuel-indicator, .temp-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .fuel-mini-gauge, .temp-mini-gauge {
+            width: 60px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        
+        .fuel-level {
+            height: 100%;
+            background: linear-gradient(90deg, var(--fuel-color), #0088aa);
+            width: 75%;
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(0, 200, 255, 0.6);
+            transition: width 0.5s ease;
+        }
+        
+        .temp-level {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--warning-color));
+            width: 45%;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        
+        .indicator-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .indicator-icon {
+            font-size: 1.2rem;
+            margin-bottom: -2px;
+            filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.3));
+        }
+        
+        /* Center dot */
+        .center-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--primary-color) 0%, #ff0000 100%);
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* Status Panel */
+        .status-panel {
+            display: flex;
+            gap: 25px;
+            margin-top: 15px;
+        }
+        
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .status-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .status-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Integrated Icons Panel */
+        .icons-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 12px;
+            padding: 15px 25px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            min-width: 60px;
+        }
+        
+        .icon-item.active {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
+        }
+        
+        .icon-item.warning {
+            background: rgba(255, 165, 0, 0.15);
+            border-color: var(--warning-color);
+            animation: pulse 2s infinite;
+        }
+        
+        .icon-symbol {
+            font-size: 1.4rem;
+            margin-bottom: 2px;
+        }
+        
+        .icon-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1;
+                box-shadow: 0 0 12px rgba(255, 165, 0, 0.3);
+            }
+            50% { 
+                opacity: 0.7;
+                box-shadow: 0 0 6px rgba(255, 165, 0, 0.15);
+            }
+        }
+        
+        @keyframes needleBounce {
+            0%, 100% { transform: translate(-50%, -100%) rotate(var(--rotation)); }
+            50% { transform: translate(-50%, -100%) rotate(calc(var(--rotation) + 0.5deg)); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                max-width: 500px;
+                gap: 25px;
+            }
+            
+            .logo {
+                font-size: 2.2rem;
+            }
+            
+            .dashboard-title {
+                font-size: 1.8rem;
+            }
+            
+            .speedometer-wrapper {
+                max-width: 400px;
+            }
+            
+            .speed-value {
+                font-size: 4rem;
+            }
+            
+            .top-indicators {
+                gap: 40px;
+            }
+            
+            .icons-panel {
+                padding: 12px 20px;
+                gap: 15px;
+            }
+            
+            .icon-item {
+                min-width: 55px;
+                padding: 6px 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                max-width: 350px;
+                gap: 20px;
+            }
+            
+            .logo {
+                font-size: 1.8rem;
+            }
+            
+            .dashboard-title {
+                font-size: 1.5rem;
+            }
+            
+            .speedometer-wrapper {
+                max-width: 300px;
+            }
+            
+            .speed-value {
+                font-size: 3.2rem;
+            }
+            
+            .top-indicators {
+                gap: 30px;
+            }
+            
+            .icons-panel {
+                padding: 10px 15px;
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .icon-item {
+                min-width: 50px;
+                padding: 5px 8px;
+            }
+            
+            .icon-symbol {
+                font-size: 1.2rem;
+            }
+            
+            .icon-label {
+                font-size: 0.65rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="speedometer-wrapper">
+            <div class="speedometer">
+                <!-- Background Image -->
+                <div class="background-image"></div>
+                
+                <!-- Center dot -->
+                <div class="center-dot"></div>
+                
+                <!-- Speed Needle -->
+                <div class="speed-needle" id="speed-needle"></div>
+                
+                <!-- RPM Indicators (Outer) -->
+                <div class="rpm-indicators" id="rpm-indicators"></div>
+                
+                <!-- Speed Arc (Inner) -->
+                <div class="speed-arc"></div>
+                
+                <!-- Speed Markings -->
+                <div class="speed-markings" id="speed-markings"></div>
+                
+                <!-- Top Indicators -->
+                <div class="top-indicators">
+                    <div class="fuel-indicator">
+                        <span class="indicator-icon">⛽</span>
+                        <div class="fuel-mini-gauge">
+                            <div class="fuel-level" id="fuel-bar"></div>
+                        </div>
+                        <span class="indicator-label" id="fuel-text">75L</span>
+                    </div>
+                    <div class="temp-indicator">
+                        <span class="indicator-icon">🌡️</span>
+                        <div class="temp-mini-gauge">
+                            <div class="temp-level" id="temp-bar"></div>
+                        </div>
+                        <span class="indicator-label">ENGINE</span>
+                    </div>
+                </div>
+                
+                <!-- Speed Display -->
+                <div class="speed-display">
+                    <div class="speed-value" id="speed">89</div>
+                    <div class="speed-unit">km/h</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Integrated Icons Panel (ABS removed) -->
+        <div class="icons-panel">
+            <div class="icon-item active" id="engine-icon" title="Engine">
+                <div class="icon-symbol">🔧</div>
+                <div class="icon-label">ENGINE</div>
+            </div>
+            <div class="icon-item active" id="lights-icon" title="Lights">
+                <div class="icon-symbol">💡</div>
+                <div class="icon-label">LIGHTS</div>
+            </div>
+            <div class="icon-item warning" id="seatbelt-icon" title="Seatbelt">
+                <div class="icon-symbol">🔒</div>
+                <div class="icon-label">BELT</div>
+            </div>
+            <div class="icon-item" id="door-icon" title="Door">
+                <div class="icon-symbol">🚪</div>
+                <div class="icon-label">DOORS</div>
+            </div>
+            <div class="icon-item active" id="lock-icon" title="Lock">
+                <div class="icon-symbol">🔐</div>
+                <div class="icon-label">LOCKS</div>
+            </div>
+        </div>
+        
+        <div class="status-panel">
+            <div class="status-item">
+                <div class="status-value" id="rpm-value">3.2k</div>
+                <div class="status-label">RPM</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="temp-value">87°C</div>
+                <div class="status-label">TEMP</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="voltage-value">13.8V</div>
+                <div class="status-label">VOLTAGE</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create RPM indicators
+        function createRPMIndicators() {
+            const container = document.getElementById('rpm-indicators');
+            const totalBars = 48;
+            const startAngle = 135;
+            const endAngle = 405;
+            
+            for (let i = 0; i < totalBars; i++) {
+                const angle = startAngle + (i / totalBars) * (endAngle - startAngle);
+                const bar = document.createElement('div');
+                bar.className = 'rpm-bar';
+                
+                // Color coding
+                if (i < totalBars * 0.6) {
+                    // Green zone - default
+                } else if (i < totalBars * 0.8) {
+                    bar.classList.add('yellow');
+                } else {
+                    bar.classList.add('red');
+                }
+                
+                bar.style.transform = `rotate(${angle}deg)`;
+                container.appendChild(bar);
+            }
+        }
+        
+        // Create speed markings (0-10 scale)
+        function createSpeedMarkings() {
+            const markingsContainer = document.getElementById('speed-markings');
+            const maxValue = 10;
+            const startAngle = 135;
+            const endAngle = 405;
+            const totalAngle = endAngle - startAngle;
+            
+            for (let i = 0; i <= maxValue; i++) {
+                if (i % 2 === 0) {
+                    const angle = startAngle + (i / maxValue) * totalAngle;
+                    const marking = document.createElement('div');
+                    marking.className = 'marking major';
+                    marking.style.transform = `rotate(${angle}deg)`;
+                    markingsContainer.appendChild(marking);
+                    
+                    // Add numbers
+                    const radius = 135;
+                    const rad = (angle - 90) * Math.PI / 180;
+                    const x = 50 + radius * Math.cos(rad) / 3;
+                    const y = 50 + radius * Math.sin(rad) / 3;
+                    
+                    const number = document.createElement('div');
+                    number.className = 'marking-number';
+                    number.textContent = i * 20;
+                    number.style.left = x + '%';
+                    number.style.top = y + '%';
+                    markingsContainer.appendChild(number);
+                } else {
+                    // Minor markings
+                    const angle = startAngle + (i / maxValue) * totalAngle;
+                    const marking = document.createElement('div');
+                    marking.className = 'marking';
+                    marking.style.transform = `rotate(${angle}deg)`;
+                    markingsContainer.appendChild(marking);
+                }
+            }
+        }
+        
+        // Update speed needle position
+        function updateSpeedNeedle(speed) {
+            const needle = document.getElementById('speed-needle');
+            // Convert speed to angle (135° to 405° range)
+            const minAngle = -135;
+            const maxAngle = 135;
+            const angle = minAngle + (speed / 200) * (maxAngle - minAngle);
+            
+            needle.style.setProperty('--rotation', `${angle}deg`);
+            needle.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
+        }
+        
+        // Update speedometer values
+        function updateSpeedometer() {
+            const speed = Math.floor(Math.random() * 40) + 70;
+            const fuel = Math.max(20, Math.floor(Math.random() * 100));
+            const rpm = Math.floor(Math.random() * 3000) + 2000;
+            
+            document.getElementById('speed').textContent = speed;
+            document.getElementById('fuel-bar').style.width = fuel + '%';
+            document.getElementById('fuel-text').textContent = Math.floor(fuel * 0.75) + 'L';
+            document.getElementById('rpm-value').textContent = (rpm/1000).toFixed(1) + 'k';
+            
+            // Update needle position
+            updateSpeedNeedle(speed);
+            
+            // Random temp change
+            if (Math.random() > 0.8) {
+                const temp = Math.max(75, Math.min(95, Math.random() * 100));
+                document.getElementById('temp-bar').style.width = (temp - 70) * 5 + '%';
+                document.getElementById('temp-value').textContent = Math.round(temp) + '°C';
+            }
+            
+            // Random voltage change
+            if (Math.random() > 0.9) {
+                const voltage = (Math.random() * 0.5 + 13.5).toFixed(1);
+                document.getElementById('voltage-value').textContent = voltage + 'V';
+            }
+            
+            // Random icon states
+            if (Math.random() > 0.9) {
+                document.getElementById('seatbelt-icon').classList.toggle('warning');
+            }
+            if (Math.random() > 0.95) {
+                document.getElementById('door-icon').classList.toggle('active');
+            }
+        }
+        
+        // Initialize
+        createRPMIndicators();
+        createSpeedMarkings();
+        
+        // Set initial needle position
+        updateSpeedNeedle(89);
+        
+        setInterval(updateSpeedometer, 1500);
+        
+        // Initial values
+        document.getElementById('temp-value').textContent = '87°C';
+        document.getElementById('rpm-value').textContent = '3.2k';
+        document.getElementById('voltage-value').textContent = '13.8V';
+    </script>
+</body>
+</html>
